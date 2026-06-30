@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 type CustomerPayload = {
   fullName?: unknown;
@@ -63,15 +62,6 @@ function generateOrderId() {
   return `TUNA-${datePart}-${randomPart}`;
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 async function appendOrderToSheet(row: Record<string, string>) {
   const response = await fetch(requireEnv("GOOGLE_APPS_SCRIPT_URL"), {
     method: "POST",
@@ -103,85 +93,6 @@ async function appendOrderToSheet(row: Record<string, string>) {
 
     throw error;
   }
-}
-
-async function sendCustomerConfirmationEmail({
-  email,
-  fullName,
-  orderId,
-  selectedProducts,
-  totalAmount,
-  depositAmount,
-  collectionMethod,
-  remarks
-}: {
-  email: string;
-  fullName: string;
-  orderId: string;
-  selectedProducts: Array<ProductConfig & { weight: number; subtotal: number }>;
-  totalAmount: number;
-  depositAmount: number;
-  collectionMethod: string;
-  remarks: string;
-}) {
-  const gmailAddress = requireEnv("GMAIL_ADDRESS");
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: gmailAddress,
-      pass: requireEnv("GMAIL_APP_PASSWORD")
-    }
-  });
-
-  const safeFullName = escapeHtml(fullName);
-  const safeCollectionMethod = escapeHtml(collectionMethod);
-  const safeRemarks = escapeHtml(remarks);
-  const productRows = selectedProducts
-    .map(
-      (product) => `
-        <tr>
-          <td style="padding:10px;border-bottom:1px solid #e5e7eb;">${escapeHtml(product.name)}</td>
-          <td style="padding:10px;border-bottom:1px solid #e5e7eb;">${product.weight}kg</td>
-          <td style="padding:10px;border-bottom:1px solid #e5e7eb;">${formatCurrency(product.pricePerKg)} / kg</td>
-          <td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;">${formatCurrency(product.subtotal)}</td>
-        </tr>`
-    )
-    .join("");
-
-  await transporter.sendMail({
-    from: `"Tuna Pre-Order" <${gmailAddress}>`,
-    to: email,
-    subject: `Your Tuna Pre-Order Confirmation - ${orderId}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;color:#18201f;line-height:1.6;max-width:680px;margin:0 auto;">
-        <h1 style="color:#074a45;">Tuna Pre-Order Confirmation</h1>
-        <p>Hi ${safeFullName},</p>
-        <p>Thank you for your order. We have received your tuna pre-order details.</p>
-        <p><strong>Order ID:</strong> ${orderId}</p>
-        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-          <thead>
-            <tr style="background:#eef5f3;text-align:left;">
-              <th style="padding:10px;">Product</th>
-              <th style="padding:10px;">Weight</th>
-              <th style="padding:10px;">Price</th>
-              <th style="padding:10px;text-align:right;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>${productRows}</tbody>
-        </table>
-        <p><strong>Total order amount:</strong> ${formatCurrency(totalAmount)}</p>
-        <p><strong>50% deposit amount:</strong> ${formatCurrency(depositAmount)}</p>
-        <h2 style="color:#074a45;">Payment Instructions</h2>
-        <p><strong>Bank Name:</strong> [Insert Bank Name]<br />
-        <strong>Account Name:</strong> [Insert Account Name]<br />
-        <strong>Account Number:</strong> [Insert Account Number]</p>
-        <p>Please complete the 50% deposit payment and upload or send the payment slip after submitting the form.</p>
-        <p><strong>Collection method:</strong> ${safeCollectionMethod}</p>
-        ${safeRemarks ? `<p><strong>Remarks:</strong> ${safeRemarks}</p>` : ""}
-        <p>Thank you. We look forward to serving you at the event.</p>
-      </div>
-    `
-  });
 }
 
 function methodNotAllowed() {
@@ -281,16 +192,6 @@ export async function POST(request: NextRequest) {
       "Terms Accepted": termsAccepted ? "Yes" : "No"
     });
 
-    await sendCustomerConfirmationEmail({
-      email,
-      fullName,
-      orderId,
-      selectedProducts,
-      totalAmount,
-      depositAmount,
-      collectionMethod,
-      remarks
-    });
   } catch (error) {
     console.error("Order submission failed", error);
     return jsonError("Unable to submit order. Please try again later.", 500);

@@ -11,40 +11,10 @@ Customer fills in order form
 -> Backend API route recalculates the official order total
 -> Backend API route generates a unique order ID
 -> Backend API route saves the order as a new row in Google Sheets through Apps Script
--> Backend API route sends confirmation email to the customer using Gmail SMTP
 -> Frontend displays success or error message
 ```
 
-Sensitive work happens only in `src/app/api/submit-order/route.ts`.
-
-## Project Structure
-
-```text
-.
-├── .env.local.example
-├── .gitignore
-├── README.md
-├── eslint.config.mjs
-├── next-env.d.ts
-├── next.config.mjs
-├── package.json
-├── public
-│   └── images
-│       ├── chutoro.jpg
-│       ├── jemy-2026-logo.png
-│       ├── otoro.jpg
-│       └── tuna-block.jpeg
-├── src
-│   └── app
-│       ├── api
-│       │   └── submit-order
-│       │       ├── route.test-notes.md
-│       │       └── route.ts
-│       ├── globals.css
-│       ├── layout.tsx
-│       └── page.tsx
-└── tsconfig.json
-```
+No customer confirmation emails are sent. No admin notification emails are sent. The administrator reviews all submitted orders directly in the Google Sheet.
 
 ## Local Setup
 
@@ -81,14 +51,10 @@ Add these in Vercel:
 Project -> Settings -> Environment Variables
 
 ```bash
-GMAIL_ADDRESS=
-GMAIL_APP_PASSWORD=
 GOOGLE_APPS_SCRIPT_URL=
 GOOGLE_APPS_SCRIPT_SECRET=
 ```
 
-- `GMAIL_ADDRESS`: the Gmail address that sends customer confirmation emails, for example `yourbusiness@gmail.com`.
-- `GMAIL_APP_PASSWORD`: a Google App Password generated for that Gmail account. Use the 16-character app password, not your normal Gmail password.
 - `GOOGLE_APPS_SCRIPT_URL`: from Apps Script after deploying the script as a Web App.
 - `GOOGLE_APPS_SCRIPT_SECRET`: any long random password you create yourself. Use the exact same value in the Apps Script `ORDER_FORM_SECRET`.
 
@@ -110,7 +76,7 @@ Tuna Block Sale - 2kg - RM660; Premium Cut Akami - 1kg - RM900
 
 ## Free Google Apps Script Setup
 
-This replaces Google Cloud service accounts. You only need the Google Sheet and an Apps Script Web App.
+This setup avoids Google Cloud service accounts. You only need the Google Sheet and an Apps Script Web App.
 
 1. Open the Google Sheet.
 2. Go to `Extensions -> Apps Script`.
@@ -179,36 +145,25 @@ Use these values in Vercel:
 
 The Web App URL is public, but the backend sends the shared secret. Requests without the secret are rejected.
 
-## Gmail SMTP Setup
+## Administrator Workflow
 
-1. Use or create the Gmail account that should send customer confirmation emails.
-2. Turn on 2-Step Verification for that Google account.
-3. Go to Google Account -> Security -> App passwords.
-4. Create an app password for Mail.
-5. Copy the generated 16-character password.
-6. Add the Gmail address to Vercel as `GMAIL_ADDRESS`.
-7. Add the 16-character app password to Vercel as `GMAIL_APP_PASSWORD`.
-
-Use the app password exactly as Google shows it. Do not use your normal Gmail password.
-
-This app sends only the customer confirmation email. It does not send admin notification emails.
+The administrator does not need to check email. Every successful submission is appended to the Google Sheet as a new row. Keep the Google Sheet open or bookmark it to review incoming orders.
 
 ## Vercel Deployment
 
 1. Push this repo to GitHub.
 2. Import or connect the GitHub repo in Vercel.
-3. Add all environment variables in Vercel Project Settings.
+3. Add `GOOGLE_APPS_SCRIPT_URL` and `GOOGLE_APPS_SCRIPT_SECRET` in Vercel Project Settings.
 4. Redeploy after adding or changing environment variables.
 
 If the GitHub repo is already connected to Vercel, every push to the configured production branch will trigger a new deployment.
 
 ## Security Checks
 
-- Nodemailer is imported only in `src/app/api/submit-order/route.ts`.
 - Google Apps Script is called only from `src/app/api/submit-order/route.ts`.
 - The frontend submits form data only to `/api/submit-order`.
 - The backend recalculates official totals from fixed server-side prices.
 - Apps Script URL and secret are never exposed to browser code.
-- Gmail address and app password are never exposed to browser code.
+- No customer confirmation email is sent.
 - No admin notification email is sent.
-- Every successful API submission is appended to Google Sheets before the customer email is sent.
+- Every successful API submission is appended to Google Sheets.
