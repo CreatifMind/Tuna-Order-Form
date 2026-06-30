@@ -67,6 +67,13 @@ textarea {
   padding: clamp(28px, 5vw, 56px);
 }
 
+.event-logo {
+  width: min(260px, 72vw);
+  height: auto;
+  margin-bottom: 22px;
+  object-fit: contain;
+}
+
 .section-label {
   margin: 0 0 14px;
   color: var(--teal);
@@ -118,6 +125,14 @@ h3 {
   background:
     linear-gradient(145deg, rgba(11, 107, 99, 0.08), rgba(232, 111, 86, 0.12)),
     var(--surface);
+}
+
+.hero-product-image {
+  width: 100%;
+  flex: 1;
+  min-height: 230px;
+  object-fit: cover;
+  object-position: center;
 }
 
 .fish-card {
@@ -265,23 +280,20 @@ textarea:focus {
 }
 
 .product-image {
-  display: flex;
-  align-items: flex-end;
+  overflow: hidden;
   min-height: 156px;
-  padding: 16px;
   background:
     radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.65) 0 8%, transparent 9%),
     linear-gradient(135deg, rgba(11, 107, 99, 0.12), rgba(232, 111, 86, 0.2)),
     #f8d8cf;
 }
 
-.product-image span {
-  max-width: 190px;
-  color: #ffffff;
-  font-size: 1.25rem;
-  font-weight: 850;
-  line-height: 1;
-  text-shadow: 0 2px 18px rgba(85, 22, 20, 0.42);
+.product-image img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center;
 }
 
 .product-content {
@@ -349,6 +361,11 @@ textarea:focus {
   color: var(--teal-dark);
   font-weight: 700;
   line-height: 1.55;
+}
+
+.payment-note strong {
+  color: var(--coral);
+  font-size: 1.1em;
 }
 
 .summary-panel {

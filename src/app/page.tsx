@@ -7,6 +7,7 @@ type Product = {
   name: string;
   description: string;
   pricePerKg: number;
+  imageSrc: string;
 };
 
 type FormState = {
@@ -23,25 +24,29 @@ const products: Product[] = [
     id: "tuna-block-sale",
     name: "Tuna Block Sale",
     description: "Versatile premium tuna block for sashimi, searing, or home slicing.",
-    pricePerKg: 330
+    pricePerKg: 330,
+    imageSrc: "/images/tuna-block.jpeg"
   },
   {
     id: "premium-cut-otoro",
     name: "Premium Cut Otoro",
     description: "Luxurious fatty belly cut with rich marbling and a buttery finish.",
-    pricePerKg: 1500
+    pricePerKg: 1500,
+    imageSrc: "/images/otoro.jpg"
   },
   {
     id: "premium-cut-chutoro",
     name: "Premium Cut Chutoro",
     description: "Balanced medium-fat cut with deep flavor and silky texture.",
-    pricePerKg: 1300
+    pricePerKg: 1300,
+    imageSrc: "/images/chutoro.jpg"
   },
   {
     id: "premium-cut-akami",
     name: "Premium Cut Akami",
     description: "Lean, clean-tasting red meat cut with elegant umami notes.",
-    pricePerKg: 900
+    pricePerKg: 900,
+    imageSrc: "/images/tuna-block.jpeg"
   }
 ];
 
@@ -161,7 +166,12 @@ export default function Home() {
     <main className="page-shell">
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="section-label">Japan Expo Premium Collection</p>
+          <img
+            className="event-logo"
+            src="/images/jemy-2026-logo.png"
+            alt="Japan Expo Malaysia 2026"
+          />
+          <p className="section-label">Japan Expo Malaysia 2026 Premium Collection</p>
           <h1>Tuna Pre-Order Form</h1>
           <p>
             Reserve premium tuna cuts in advance for event collection. Choose your preferred
@@ -169,7 +179,7 @@ export default function Home() {
           </p>
         </div>
         <div className="hero-panel" aria-hidden="true">
-          <div className="fish-card fish-card-large" />
+          <img className="hero-product-image" src="/images/tuna-block.jpeg" alt="" />
           <div className="hero-panel-details">
             <span>Fresh-cut selections</span>
             <strong>50% deposit required</strong>
@@ -249,8 +259,8 @@ export default function Home() {
             <div className="product-grid">
               {products.map((product) => (
                 <article className="product-card" key={product.id}>
-                  <div className="product-image" aria-label={`${product.name} image placeholder`}>
-                    <span>{product.name}</span>
+                  <div className="product-image">
+                    <img src={product.imageSrc} alt={product.name} />
                   </div>
                   <div className="product-content">
                     <div>
@@ -301,7 +311,8 @@ export default function Home() {
               </p>
             </div>
             <p className="payment-note">
-              Please complete the 50% deposit payment and upload or send the payment slip after
+              Please complete the 50% deposit payment of{" "}
+              <strong>{formatCurrency(depositAmount)}</strong> and upload or send the payment slip after
               submitting the form.
             </p>
           </section>
