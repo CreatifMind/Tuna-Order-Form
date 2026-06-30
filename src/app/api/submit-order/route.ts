@@ -1,4 +1,3 @@
-import { google } from "googleapis";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -73,28 +72,37 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 
-async function appendOrderToSheet(values: string[]) {
-  const clientEmail = requireEnv("GOOGLE_SHEETS_CLIENT_EMAIL");
-  const privateKey = requireEnv("GOOGLE_SHEETS_PRIVATE_KEY").replace(/\\n/g, "\n");
-  const spreadsheetId = requireEnv("GOOGLE_SHEETS_SPREADSHEET_ID");
-  const sheetName = requireEnv("GOOGLE_SHEETS_SHEET_NAME");
-
-  const auth = new google.auth.JWT({
-    email: clientEmail,
-    key: privateKey,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+async function appendOrderToSheet(row: Record<string, string>) {
+  const response = await fetch(requireEnv("GOOGLE_APPS_SCRIPT_URL"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      secret: requireEnv("GOOGLE_APPS_SCRIPT_SECRET"),
+      row
+    })
   });
 
-  const sheets = google.sheets({ version: "v4", auth });
+  const responseText = await response.text();
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range: `${sheetName}!A:K`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [values]
+  if (!response.ok) {
+    throw new Error(`Google Apps Script request failed: ${response.status} ${responseText}`);
+  }
+
+  try {
+    const result = JSON.parse(responseText) as { success?: boolean; error?: string };
+
+    if (!result.success) {
+      throw new Error(result.error || "Google Apps Script did not confirm success.");
     }
-  });
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid Google Apps Script response: ${responseText}`);
+    }
+
+    throw error;
+  }
 }
 
 async function sendCustomerConfirmationEmail({
@@ -253,19 +261,19 @@ export async function POST(request: NextRequest) {
     .join("; ");
 
   try {
-    await appendOrderToSheet([
-      timestamp,
-      orderId,
-      fullName,
-      email,
-      mobile,
-      collectionMethod,
-      remarks,
-      selectedProductsSummary,
-      formatCurrency(totalAmount),
-      formatCurrency(depositAmount),
-      termsAccepted ? "Yes" : "No"
-    ]);
+    await appendOrderToSheet({
+      Timestamp: timestamp,
+      "Order ID": orderId,
+      "Full Name": fullName,
+      "Email Address": email,
+      "Mobile Number": mobile,
+      "Collection Method": collectionMethod,
+      Remarks: remarks,
+      "Selected Products": selectedProductsSummary,
+      "Total Amount": formatCurrency(totalAmount),
+      "Deposit Amount": formatCurrency(depositAmount),
+      "Terms Accepted": termsAccepted ? "Yes" : "No"
+    });
 
     await sendCustomerConfirmationEmail({
       email,
