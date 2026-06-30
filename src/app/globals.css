@@ -1,15 +1,17 @@
 :root {
-  --background: #f6f8f7;
+  --background: #fff8f8;
   --surface: #ffffff;
-  --surface-soft: #eef5f3;
-  --text: #18201f;
-  --muted: #667370;
-  --border: #dce5e2;
-  --teal: #0b6b63;
-  --teal-dark: #074a45;
+  --surface-soft: #fff0f3;
+  --text: #2a2024;
+  --muted: #77656b;
+  --border: #f1d7dd;
+  --sakura: #d94f74;
+  --sakura-dark: #9f294d;
+  --plum: #5f3044;
   --coral: #e86f56;
   --coral-soft: #fff0eb;
-  --shadow: 0 18px 45px rgba(14, 41, 38, 0.1);
+  --gold: #b98b45;
+  --shadow: 0 18px 45px rgba(123, 45, 69, 0.11);
 }
 
 * {
@@ -22,7 +24,10 @@ html {
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 14% 8%, rgba(255, 205, 216, 0.45), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(255, 235, 239, 0.8), transparent 24%),
+    linear-gradient(180deg, #fff8f8 0%, #fffdf9 42%, #fff7f8 100%);
   color: var(--text);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -42,11 +47,7 @@ textarea {
 }
 
 .hero-section {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 28px;
-  align-items: stretch;
-  min-height: 360px;
+  display: block;
   margin-bottom: 28px;
 }
 
@@ -63,8 +64,11 @@ textarea {
 .hero-copy {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  min-height: 340px;
   padding: clamp(28px, 5vw, 56px);
+  text-align: center;
 }
 
 .event-logo {
@@ -76,7 +80,7 @@ textarea {
 
 .section-label {
   margin: 0 0 14px;
-  color: var(--teal);
+  color: var(--sakura-dark);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -257,9 +261,9 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--teal);
+  border-color: var(--sakura);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(11, 107, 99, 0.14);
+  box-shadow: 0 0 0 3px rgba(217, 79, 116, 0.16);
 }
 
 .field-wide {
@@ -284,8 +288,8 @@ textarea:focus {
   min-height: 156px;
   background:
     radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.65) 0 8%, transparent 9%),
-    linear-gradient(135deg, rgba(11, 107, 99, 0.12), rgba(232, 111, 86, 0.2)),
-    #f8d8cf;
+    linear-gradient(135deg, rgba(217, 79, 116, 0.12), rgba(185, 139, 69, 0.16)),
+    #ffe2e7;
 }
 
 .product-image img {
@@ -317,7 +321,7 @@ textarea:focus {
 }
 
 .product-controls strong {
-  color: var(--teal-dark);
+  color: var(--plum);
   font-size: 1rem;
 }
 
@@ -325,13 +329,27 @@ textarea:focus {
   font-size: 0.78rem;
 }
 
-.product-controls select {
-  padding: 10px 12px;
+.kg-input-wrap {
+  position: relative;
+}
+
+.kg-input-wrap input {
+  padding: 10px 38px 10px 12px;
+}
+
+.kg-input-wrap span {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  transform: translateY(-50%);
 }
 
 .payment-section {
   background:
-    linear-gradient(135deg, rgba(11, 107, 99, 0.06), rgba(232, 111, 86, 0.08)),
+    linear-gradient(135deg, rgba(217, 79, 116, 0.08), rgba(255, 244, 232, 0.85)),
     var(--surface);
 }
 
@@ -346,7 +364,7 @@ textarea:focus {
   gap: 6px;
   margin: 0;
   padding: 14px;
-  border: 1px solid rgba(11, 107, 99, 0.14);
+  border: 1px solid rgba(217, 79, 116, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.7);
 }
@@ -358,13 +376,13 @@ textarea:focus {
 
 .payment-note {
   margin: 18px 0 0;
-  color: var(--teal-dark);
+  color: var(--plum);
   font-weight: 700;
   line-height: 1.55;
 }
 
 .payment-note strong {
-  color: var(--coral);
+  color: var(--sakura-dark);
   font-size: 1.1em;
 }
 
@@ -408,8 +426,28 @@ textarea:focus {
 }
 
 .summary-item b {
-  color: var(--teal-dark);
+  color: var(--plum);
   white-space: nowrap;
+}
+
+.summary-actions {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.summary-actions button {
+  border: 0;
+  background: transparent;
+  color: var(--sakura-dark);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0;
+}
+
+.summary-actions button:hover {
+  text-decoration: underline;
 }
 
 .summary-totals {
@@ -433,7 +471,7 @@ textarea:focus {
 }
 
 .deposit-row strong {
-  color: var(--coral);
+  color: var(--sakura-dark);
   font-size: 1.3rem;
 }
 
@@ -449,7 +487,7 @@ textarea:focus {
   width: 18px;
   height: 18px;
   margin-top: 2px;
-  accent-color: var(--teal);
+  accent-color: var(--sakura);
 }
 
 .terms-checkbox span {
@@ -471,9 +509,9 @@ textarea:focus {
 }
 
 .form-message.success {
-  border: 1px solid rgba(11, 107, 99, 0.22);
-  background: #e8f6f1;
-  color: var(--teal-dark);
+  border: 1px solid rgba(217, 79, 116, 0.22);
+  background: #fff0f3;
+  color: var(--plum);
 }
 
 .form-message.error {
@@ -487,7 +525,7 @@ textarea:focus {
   min-height: 52px;
   border: 0;
   border-radius: 8px;
-  background: var(--teal);
+  background: var(--sakura-dark);
   color: #ffffff;
   cursor: pointer;
   font-size: 1rem;
@@ -499,13 +537,75 @@ textarea:focus {
 }
 
 .submit-button:hover:not(:disabled) {
-  background: var(--teal-dark);
+  background: var(--plum);
   transform: translateY(-1px);
 }
 
 .submit-button:disabled {
   cursor: not-allowed;
   opacity: 0.64;
+}
+
+.confirmation-page {
+  display: grid;
+  gap: 22px;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: clamp(26px, 5vw, 52px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.confirmation-logo {
+  width: min(280px, 78vw);
+  height: auto;
+  margin: 0 auto;
+}
+
+.confirmation-intro {
+  max-width: 620px;
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.confirmation-card {
+  display: grid;
+  gap: 6px;
+  justify-self: center;
+  min-width: min(100%, 360px);
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.confirmation-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.confirmation-card strong {
+  color: var(--plum);
+  font-size: clamp(1.25rem, 4vw, 1.8rem);
+}
+
+.screenshot-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.secondary-action {
+  justify-self: center;
+  max-width: 320px;
 }
 
 @media (max-width: 980px) {

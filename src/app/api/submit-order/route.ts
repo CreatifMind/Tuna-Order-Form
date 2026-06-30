@@ -17,10 +17,11 @@ type ProductConfig = {
   id: string;
   name: string;
   pricePerKg: number;
+  minWeight?: number;
 };
 
 const productCatalog: ProductConfig[] = [
-  { id: "tuna-block-sale", name: "Tuna Block Sale", pricePerKg: 330 },
+  { id: "tuna-block-sale", name: "Tuna Block Sale", pricePerKg: 330, minWeight: 5 },
   { id: "premium-cut-otoro", name: "Premium Cut Otoro", pricePerKg: 1500 },
   { id: "premium-cut-chutoro", name: "Premium Cut Chutoro", pricePerKg: 1300 },
   { id: "premium-cut-akami", name: "Premium Cut Akami", pricePerKg: 900 }
@@ -162,6 +163,16 @@ export async function POST(request: NextRequest) {
 
   if (selectedProducts.length === 0) {
     return jsonError("Please select at least one product.");
+  }
+
+  const invalidMinimumProduct = selectedProducts.find(
+    (product) => product.minWeight && product.weight < product.minWeight
+  );
+
+  if (invalidMinimumProduct) {
+    return jsonError(
+      `${invalidMinimumProduct.name} has a minimum purchase of ${invalidMinimumProduct.minWeight}kg.`
+    );
   }
 
   const totalAmount = selectedProducts.reduce((sum, product) => sum + product.subtotal, 0);

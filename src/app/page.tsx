@@ -8,6 +8,7 @@ type Product = {
   description: string;
   pricePerKg: number;
   imageSrc: string;
+  minWeight?: number;
 };
 
 type FormState = {
@@ -22,9 +23,10 @@ const products: Product[] = [
   {
     id: "tuna-block-sale",
     name: "Tuna Block Sale",
-    description: "Versatile premium tuna block for sashimi, searing, or home slicing.",
+    description: "Versatile premium tuna block for sashimi, searing, or home slicing. Minimum 5kg.",
     pricePerKg: 330,
-    imageSrc: "/images/tuna-block.jpeg"
+    imageSrc: "/images/tuna-block.jpeg",
+    minWeight: 5
   },
   {
     id: "premium-cut-otoro",
@@ -64,8 +66,6 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0
   }).format(value);
 
-const weightOptions = Array.from({ length: 11 }, (_, index) => index);
-
 export default function Home() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [weights, setWeights] = useState<Record<string, number>>(
@@ -76,6 +76,7 @@ export default function Home() {
     null
   );
   const [orderId, setOrderId] = useState("");
+  const [submittedDeposit, setSubmittedDeposit] = useState(0);
 
   const selectedProducts = useMemo(
     () =>
@@ -95,9 +96,40 @@ export default function Home() {
   const totalAmount = selectedProducts.reduce((sum, product) => sum + product.subtotal, 0);
   const depositAmount = totalAmount * 0.5;
 
+  const updateWeight = (product: Product, rawValue: string) => {
+    const value = rawValue === "" ? 0 : Number(rawValue);
+
+    if (!Number.isFinite(value)) {
+      return;
+    }
+
+    const normalizedValue = Math.max(0, Math.min(10, Math.floor(value)));
+
+    setWeights((current) => ({
+      ...current,
+      [product.id]: normalizedValue
+    }));
+    setMessage(null);
+  };
+
+  const removeProduct = (productId: string) => {
+    setWeights((current) => ({
+      ...current,
+      [productId]: 0
+    }));
+    setMessage(null);
+  };
+
   const updateForm = (field: keyof FormState, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage(null);
+  };
+
+  const startNewOrder = () => {
+    setOrderId("");
+    setSubmittedDeposit(0);
+    setMessage(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const submitOrder = async (event: FormEvent<HTMLFormElement>) => {
@@ -112,6 +144,18 @@ export default function Home() {
 
     if (selectedProducts.length === 0) {
       setMessage({ type: "error", text: "Please select at least one product weight." });
+      return;
+    }
+
+    const invalidMinimumProduct = selectedProducts.find(
+      (product) => product.minWeight && product.weight < product.minWeight
+    );
+
+    if (invalidMinimumProduct) {
+      setMessage({
+        type: "error",
+        text: `${invalidMinimumProduct.name} has a minimum purchase of ${invalidMinimumProduct.minWeight}kg.`
+      });
       return;
     }
 
@@ -143,6 +187,7 @@ export default function Home() {
         throw new Error(result.error || "Something went wrong while submitting your order.");
       }
 
+      setSubmittedDeposit(depositAmount);
       setOrderId(result.orderId);
       setMessage({
         type: "success",
@@ -160,6 +205,66 @@ export default function Home() {
     }
   };
 
+  if (orderId) {
+    return (
+      <main className="page-shell">
+        <section className="confirmation-page">
+          <img
+            className="confirmation-logo"
+            src="/images/jemy-2026-logo.png"
+            alt="Japan Expo Malaysia 2026"
+          />
+          <p className="section-label">Order submitted</p>
+          <h1>Thank you for your pre-order.</h1>
+          <p className="confirmation-intro">
+            Your order has been received. Please keep this page handy until your payment slip has
+            been sent.
+          </p>
+
+          <div className="confirmation-card">
+            <span>Order ID</span>
+            <strong>{orderId}</strong>
+          </div>
+
+          <section className="content-section payment-section">
+            <h2>Payment Instructions</h2>
+            <div className="bank-details">
+              <p>
+                <span>Bank Name</span>
+                <strong>[Insert Bank Name]</strong>
+              </p>
+              <p>
+                <span>Account Name</span>
+                <strong>[Insert Account Name]</strong>
+              </p>
+              <p>
+                <span>Account Number</span>
+                <strong>[Insert Account Number]</strong>
+              </p>
+            </div>
+            <p className="payment-note">
+              Please complete the 50% deposit payment of{" "}
+              <strong>{formatCurrency(submittedDeposit)}</strong>.
+            </p>
+            <p className="payment-note">
+              Once payment is made, please WhatsApp payment slip to{" "}
+              <strong>012-2099005</strong> or email to{" "}
+              <strong>info@siam-connection.com</strong>.
+            </p>
+            <p className="screenshot-note">
+              Reminder: please screenshot these payment instructions so you can send your payment
+              slip after leaving this page.
+            </p>
+          </section>
+
+          <button className="submit-button secondary-action" type="button" onClick={startNewOrder}>
+            Submit New Form
+          </button>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="page-shell">
       <section className="hero-section">
@@ -176,13 +281,6 @@ export default function Home() {
             products, review the live deposit amount, and submit your order securely.
           </p>
         </div>
-        <div className="hero-panel" aria-hidden="true">
-          <img className="hero-product-image" src="/images/tuna-block.jpeg" alt="" />
-          <div className="hero-panel-details">
-            <span>Fresh-cut selections</span>
-            <strong>50% deposit required</strong>
-          </div>
-        </div>
       </section>
 
       <form className="order-layout" onSubmit={submitOrder}>
@@ -190,10 +288,12 @@ export default function Home() {
           <section className="content-section">
             <h2>Terms and Conditions</h2>
             <ul className="terms-list">
-              <li>Orders are confirmed only after submission and deposit payment.</li>
-              <li>Final collection timing and availability may be coordinated by the event team.</li>
-              <li>Weights are selected in kilograms and priced according to the listed rate.</li>
-              <li>Please keep your payment slip for verification after submitting the form.</li>
+              <li>All cuts are prepared by the chef team and are subject to event-day availability.</li>
+              <li>A 50% non-refundable deposit is required to secure each pre-order.</li>
+              <li>Orders are fulfilled on a first-come, first-served basis after payment verification.</li>
+              <li>Collection is scheduled for 25 July 2026 from 12:00pm at KLCC Hall 6.</li>
+              <li>Late collection, missed collection, or customer cancellation may result in forfeiture of the deposit.</li>
+              <li>Please keep your payment slip and send it via WhatsApp or email after submitting this form.</li>
             </ul>
           </section>
 
@@ -257,21 +357,18 @@ export default function Home() {
                       <strong>{formatCurrency(product.pricePerKg)} / kg</strong>
                       <label>
                         <span>Weight</span>
-                        <select
-                          value={weights[product.id] ?? 0}
-                          onChange={(event) =>
-                            setWeights((current) => ({
-                              ...current,
-                              [product.id]: Number(event.target.value)
-                            }))
-                          }
-                        >
-                          {weightOptions.map((weight) => (
-                            <option value={weight} key={weight}>
-                              {weight}kg
-                            </option>
-                          ))}
-                        </select>
+                        <div className="kg-input-wrap">
+                          <input
+                            inputMode="numeric"
+                            min={0}
+                            max={10}
+                            type="number"
+                            value={weights[product.id] || ""}
+                            onChange={(event) => updateWeight(product, event.target.value)}
+                            placeholder="0"
+                          />
+                          <span>kg</span>
+                        </div>
                       </label>
                     </div>
                   </div>
@@ -298,8 +395,12 @@ export default function Home() {
             </div>
             <p className="payment-note">
               Please complete the 50% deposit payment of{" "}
-              <strong>{formatCurrency(depositAmount)}</strong> and upload or send the payment slip after
-              submitting the form.
+              <strong>{formatCurrency(depositAmount)}</strong>.
+            </p>
+            <p className="payment-note">
+              Once payment is made, please WhatsApp payment slip to{" "}
+              <strong>012-2099005</strong> or email to{" "}
+              <strong>info@siam-connection.com</strong>.
             </p>
           </section>
         </div>
@@ -318,7 +419,12 @@ export default function Home() {
                       {product.weight}kg x {formatCurrency(product.pricePerKg)} / kg
                     </span>
                   </div>
-                  <b>{formatCurrency(product.subtotal)}</b>
+                  <div className="summary-actions">
+                    <b>{formatCurrency(product.subtotal)}</b>
+                    <button type="button" onClick={() => removeProduct(product.id)}>
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
