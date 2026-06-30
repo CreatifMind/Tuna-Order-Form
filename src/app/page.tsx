@@ -14,7 +14,6 @@ type FormState = {
   fullName: string;
   email: string;
   mobile: string;
-  collectionMethod: string;
   remarks: string;
   termsAccepted: boolean;
 };
@@ -54,7 +53,6 @@ const initialForm: FormState = {
   fullName: "",
   email: "",
   mobile: "",
-  collectionMethod: "",
   remarks: "",
   termsAccepted: false
 };
@@ -107,7 +105,7 @@ export default function Home() {
     setMessage(null);
     setOrderId("");
 
-    if (!form.fullName || !form.email || !form.mobile || !form.collectionMethod) {
+    if (!form.fullName || !form.email || !form.mobile) {
       setMessage({ type: "error", text: "Please complete all required customer details." });
       return;
     }
@@ -229,18 +227,6 @@ export default function Home() {
                   onChange={(event) => updateForm("mobile", event.target.value)}
                   placeholder="+60..."
                 />
-              </label>
-              <label>
-                <span>Collection Method</span>
-                <select
-                  required
-                  value={form.collectionMethod}
-                  onChange={(event) => updateForm("collectionMethod", event.target.value)}
-                >
-                  <option value="">Select collection method</option>
-                  <option value="Collect at event booth">Collect at event booth</option>
-                  <option value="Arrange pickup with team">Arrange pickup with team</option>
-                </select>
               </label>
               <label className="field-wide">
                 <span>Remarks / Special Notes</span>

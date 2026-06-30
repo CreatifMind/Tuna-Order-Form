@@ -4,7 +4,6 @@ type CustomerPayload = {
   fullName?: unknown;
   email?: unknown;
   mobile?: unknown;
-  collectionMethod?: unknown;
   remarks?: unknown;
   termsAccepted?: unknown;
 };
@@ -26,6 +25,8 @@ const productCatalog: ProductConfig[] = [
   { id: "premium-cut-chutoro", name: "Premium Cut Chutoro", pricePerKg: 1300 },
   { id: "premium-cut-akami", name: "Premium Cut Akami", pricePerKg: 900 }
 ];
+
+const collectionMethod = "Event collection";
 
 const catalogById = new Map(productCatalog.map((product) => [product.id, product]));
 
@@ -117,12 +118,11 @@ export async function POST(request: NextRequest) {
   const fullName = asTrimmedString(customer.fullName);
   const email = asTrimmedString(customer.email).toLowerCase();
   const mobile = asTrimmedString(customer.mobile);
-  const collectionMethod = asTrimmedString(customer.collectionMethod);
   const remarks = asTrimmedString(customer.remarks);
   const termsAccepted = customer.termsAccepted === true;
 
-  if (!fullName || !email || !mobile || !collectionMethod) {
-    return jsonError("Full name, email, mobile number, and collection method are required.");
+  if (!fullName || !email || !mobile) {
+    return jsonError("Full name, email, and mobile number are required.");
   }
 
   if (!emailPattern.test(email)) {
