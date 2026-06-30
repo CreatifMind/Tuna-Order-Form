@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 type CustomerPayload = {
   fullName?: unknown;
@@ -124,8 +124,14 @@ async function sendCustomerConfirmationEmail({
   collectionMethod: string;
   remarks: string;
 }) {
-  const resend = new Resend(requireEnv("RESEND_API_KEY"));
-  const fromEmail = requireEnv("FROM_EMAIL");
+  const gmailAddress = requireEnv("GMAIL_ADDRESS");
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailAddress,
+      pass: requireEnv("GMAIL_APP_PASSWORD")
+    }
+  });
 
   const safeFullName = escapeHtml(fullName);
   const safeCollectionMethod = escapeHtml(collectionMethod);
@@ -142,8 +148,8 @@ async function sendCustomerConfirmationEmail({
     )
     .join("");
 
-  await resend.emails.send({
-    from: fromEmail,
+  await transporter.sendMail({
+    from: `"Tuna Pre-Order" <${gmailAddress}>`,
     to: email,
     subject: `Your Tuna Pre-Order Confirmation - ${orderId}`,
     html: `

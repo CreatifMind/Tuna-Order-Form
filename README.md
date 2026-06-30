@@ -11,7 +11,7 @@ Customer fills in order form
 -> Backend API route recalculates the official order total
 -> Backend API route generates a unique order ID
 -> Backend API route saves the order as a new row in Google Sheets through Apps Script
--> Backend API route sends confirmation email to the customer using Resend
+-> Backend API route sends confirmation email to the customer using Gmail SMTP
 -> Frontend displays success or error message
 ```
 
@@ -81,14 +81,14 @@ Add these in Vercel:
 Project -> Settings -> Environment Variables
 
 ```bash
-RESEND_API_KEY=
-FROM_EMAIL=
+GMAIL_ADDRESS=
+GMAIL_APP_PASSWORD=
 GOOGLE_APPS_SCRIPT_URL=
 GOOGLE_APPS_SCRIPT_SECRET=
 ```
 
-- `RESEND_API_KEY`: from the Resend dashboard after you create an API key.
-- `FROM_EMAIL`: a Resend-verified sender, for example `orders@yourdomain.com`.
+- `GMAIL_ADDRESS`: the Gmail address that sends customer confirmation emails, for example `yourbusiness@gmail.com`.
+- `GMAIL_APP_PASSWORD`: a Google App Password generated for that Gmail account. Use the 16-character app password, not your normal Gmail password.
 - `GOOGLE_APPS_SCRIPT_URL`: from Apps Script after deploying the script as a Web App.
 - `GOOGLE_APPS_SCRIPT_SECRET`: any long random password you create yourself. Use the exact same value in the Apps Script `ORDER_FORM_SECRET`.
 
@@ -179,14 +179,17 @@ Use these values in Vercel:
 
 The Web App URL is public, but the backend sends the shared secret. Requests without the secret are rejected.
 
-## Resend Setup
+## Gmail SMTP Setup
 
-1. Create a Resend account at [resend.com](https://resend.com/).
-2. Verify your sending domain or sender email.
-3. Go to `API Keys`.
-4. Create an API key.
-5. Add it to Vercel as `RESEND_API_KEY`.
-6. Add your verified sender to Vercel as `FROM_EMAIL`.
+1. Use or create the Gmail account that should send customer confirmation emails.
+2. Turn on 2-Step Verification for that Google account.
+3. Go to Google Account -> Security -> App passwords.
+4. Create an app password for Mail.
+5. Copy the generated 16-character password.
+6. Add the Gmail address to Vercel as `GMAIL_ADDRESS`.
+7. Add the 16-character app password to Vercel as `GMAIL_APP_PASSWORD`.
+
+Use the app password exactly as Google shows it. Do not use your normal Gmail password.
 
 This app sends only the customer confirmation email. It does not send admin notification emails.
 
@@ -201,11 +204,11 @@ If the GitHub repo is already connected to Vercel, every push to the configured 
 
 ## Security Checks
 
-- Resend is imported only in `src/app/api/submit-order/route.ts`.
+- Nodemailer is imported only in `src/app/api/submit-order/route.ts`.
 - Google Apps Script is called only from `src/app/api/submit-order/route.ts`.
 - The frontend submits form data only to `/api/submit-order`.
 - The backend recalculates official totals from fixed server-side prices.
 - Apps Script URL and secret are never exposed to browser code.
-- Resend keys are never exposed to browser code.
+- Gmail address and app password are never exposed to browser code.
 - No admin notification email is sent.
 - Every successful API submission is appended to Google Sheets before the customer email is sent.
