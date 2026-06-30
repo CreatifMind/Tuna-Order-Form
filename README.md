@@ -101,6 +101,9 @@ const HEADERS = [
 ];
 
 function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
 
@@ -109,16 +112,43 @@ function doPost(e) {
     }
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const orderId = getNextOrderId(sheet);
+    payload.row["Order ID"] = orderId;
+
     const row = HEADERS.map((header) => payload.row?.[header] || "");
     sheet.appendRow(row);
 
-    return jsonResponse({ success: true });
+    return jsonResponse({ success: true, orderId });
   } catch (error) {
     return jsonResponse({
       success: false,
       error: error instanceof Error ? error.message : String(error)
     });
+  } finally {
+    lock.releaseLock();
   }
+}
+
+function getNextOrderId(sheet) {
+  const orderIdColumn = 2;
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return "JEMY-T001";
+  }
+
+  const orderIds = sheet
+    .getRange(2, orderIdColumn, lastRow - 1, 1)
+    .getValues()
+    .flat()
+    .filter(String);
+
+  const highestNumber = orderIds.reduce((highest, orderId) => {
+    const match = String(orderId).match(/^JEMY-T(\d+)$/);
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 0);
+
+  return `JEMY-T${String(highestNumber + 1).padStart(3, "0")}`;
 }
 
 function jsonResponse(data) {

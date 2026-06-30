@@ -61,12 +61,6 @@ function asTrimmedString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function generateOrderId() {
-  const datePart = new Date().toISOString().slice(0, 10).replaceAll("-", "");
-  const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `TUNA-${datePart}-${randomPart}`;
-}
-
 async function appendOrderToSheet(row: Record<string, string>) {
   const response = await fetch(requireEnv("GOOGLE_APPS_SCRIPT_URL"), {
     method: "POST",
@@ -86,11 +80,21 @@ async function appendOrderToSheet(row: Record<string, string>) {
   }
 
   try {
-    const result = JSON.parse(responseText) as { success?: boolean; error?: string };
+    const result = JSON.parse(responseText) as {
+      success?: boolean;
+      error?: string;
+      orderId?: string;
+    };
 
     if (!result.success) {
       throw new Error(result.error || "Google Apps Script did not confirm success.");
     }
+
+    if (!result.orderId) {
+      throw new Error("Google Apps Script did not return an order ID.");
+    }
+
+    return result.orderId;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid Google Apps Script response: ${responseText}`);
@@ -175,7 +179,6 @@ export async function POST(request: NextRequest) {
 
   const totalAmount = selectedProducts.reduce((sum, product) => sum + product.subtotal, 0);
   const depositAmount = totalAmount * 0.5;
-  const orderId = generateOrderId();
   const timestamp = new Date().toISOString();
   const selectedProductsSummary = selectedProducts
     .map(
@@ -185,9 +188,9 @@ export async function POST(request: NextRequest) {
     .join("\n");
 
   try {
-    await appendOrderToSheet({
+    const orderId = await appendOrderToSheet({
       Timestamp: timestamp,
-      "Order ID": orderId,
+      "Order ID": "",
       "Full Name": fullName,
       "Email Address": email,
       "Mobile Number": mobile,
@@ -198,13 +201,13 @@ export async function POST(request: NextRequest) {
       "Terms Accepted": termsAccepted ? "Yes" : "No"
     });
 
+    return NextResponse.json({
+      success: true,
+      orderId
+    });
+
   } catch (error) {
     console.error("Order submission failed", error);
     return jsonError("Unable to submit order. Please try again later.", 500);
   }
-
-  return NextResponse.json({
-    success: true,
-    orderId
-  });
 }
