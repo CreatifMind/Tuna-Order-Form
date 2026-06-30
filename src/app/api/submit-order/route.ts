@@ -26,8 +26,6 @@ const productCatalog: ProductConfig[] = [
   { id: "premium-cut-akami", name: "Premium Cut Akami", pricePerKg: 900 }
 ];
 
-const collectionMethod = "Event collection";
-
 const catalogById = new Map(productCatalog.map((product) => [product.id, product]));
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -184,7 +182,6 @@ export async function POST(request: NextRequest) {
       "Full Name": fullName,
       "Email Address": email,
       "Mobile Number": mobile,
-      "Collection Method": collectionMethod,
       Remarks: remarks,
       "Selected Products": selectedProductsSummary,
       "Total Amount": formatCurrency(totalAmount),

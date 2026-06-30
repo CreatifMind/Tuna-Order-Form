@@ -65,10 +65,8 @@ Do not prefix these variables with `NEXT_PUBLIC_`. They are server-only values.
 Create a Google Sheet and add this exact header row in row 1:
 
 ```text
-Timestamp | Order ID | Full Name | Email Address | Mobile Number | Collection Method | Remarks | Selected Products | Total Amount | Deposit Amount | Terms Accepted
+Timestamp | Order ID | Full Name | Email Address | Mobile Number | Remarks | Selected Products | Total Amount | Deposit Amount | Terms Accepted
 ```
-
-`Collection Method` is filled automatically as `Event collection`; customers do not choose it on the form.
 
 The API appends each successful order as a new row. The `Selected Products` cell is written in a readable format such as:
 
@@ -94,7 +92,6 @@ const HEADERS = [
   "Full Name",
   "Email Address",
   "Mobile Number",
-  "Collection Method",
   "Remarks",
   "Selected Products",
   "Total Amount",
