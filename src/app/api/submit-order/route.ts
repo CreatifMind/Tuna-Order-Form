@@ -47,6 +47,32 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
+function getSubmissionErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (message.includes("Missing required environment variable")) {
+    return "Order setup issue: Vercel is missing GOOGLE_APPS_SCRIPT_URL or GOOGLE_APPS_SCRIPT_SECRET for Production. Please add them and redeploy.";
+  }
+
+  if (message.includes("Unauthorized")) {
+    return "Order setup issue: Google Apps Script rejected the secret. Please make sure GOOGLE_APPS_SCRIPT_SECRET matches ORDER_FORM_SECRET exactly.";
+  }
+
+  if (message.includes("did not return an order ID")) {
+    return "Order setup issue: Google Apps Script is still using the old code. Please redeploy the latest Apps Script version that returns orderId.";
+  }
+
+  if (message.includes("Invalid Google Apps Script response")) {
+    return "Order setup issue: Google Apps Script did not return JSON. Please check that the Web App URL ends with /exec and access is set to Anyone.";
+  }
+
+  if (message.includes("Google Apps Script request failed")) {
+    return "Order setup issue: Google Apps Script could not save the order. Please check the Apps Script deployment and execution logs.";
+  }
+
+  return "Unable to submit order. Please try again later.";
+}
+
 function requireEnv(name: string) {
   const value = process.env[name];
 
@@ -208,6 +234,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Order submission failed", error);
-    return jsonError("Unable to submit order. Please try again later.", 500);
+    return jsonError(getSubmissionErrorMessage(error), 500);
   }
 }
