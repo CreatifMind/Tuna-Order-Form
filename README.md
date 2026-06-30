@@ -71,7 +71,8 @@ Timestamp | Order ID | Full Name | Email Address | Mobile Number | Remarks | Sel
 The API appends each successful order as a new row. The `Selected Products` cell is written in a readable format such as:
 
 ```text
-Tuna Block Sale - 2kg - RM660; Premium Cut Akami - 1kg - RM900
+Tuna Block Sale - 2kg - RM660
+Premium Cut Akami - 1kg - RM900
 ```
 
 ## Free Google Apps Script Setup

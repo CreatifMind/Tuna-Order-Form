@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       (product) =>
         `${product.name} - ${product.weight}kg - ${formatCurrency(product.subtotal)}`
     )
-    .join("; ");
+    .join("\n");
 
   try {
     await appendOrderToSheet({
