@@ -19,6 +19,12 @@ type FormState = {
   termsAccepted: boolean;
 };
 
+type CartItem = {
+  lineId: string;
+  productId: string;
+  weight: number;
+};
+
 const products: Product[] = [
   {
     id: "tuna-block-sale",
@@ -68,9 +74,10 @@ const formatCurrency = (value: number) =>
 
 export default function Home() {
   const [form, setForm] = useState<FormState>(initialForm);
-  const [weights, setWeights] = useState<Record<string, number>>(
-    Object.fromEntries(products.map((product) => [product.id, 0]))
+  const [pendingWeights, setPendingWeights] = useState<Record<string, string>>(
+    Object.fromEntries(products.map((product) => [product.id, ""]))
   );
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
     null
@@ -80,43 +87,85 @@ export default function Home() {
 
   const selectedProducts = useMemo(
     () =>
-      products
-        .map((product) => {
-          const weight = weights[product.id] ?? 0;
+      cartItems
+        .map((item) => {
+          const product = products.find((productOption) => productOption.id === item.productId);
+
+          if (!product) {
+            return null;
+          }
+
           return {
             ...product,
-            weight,
-            subtotal: weight * product.pricePerKg
+            lineId: item.lineId,
+            weight: item.weight,
+            subtotal: item.weight * product.pricePerKg
           };
         })
-        .filter((product) => product.weight > 0),
-    [weights]
+        .filter((product): product is Product & { lineId: string; weight: number; subtotal: number } =>
+          Boolean(product)
+        ),
+    [cartItems]
   );
 
   const totalAmount = selectedProducts.reduce((sum, product) => sum + product.subtotal, 0);
   const depositAmount = totalAmount * 0.5;
 
-  const updateWeight = (product: Product, rawValue: string) => {
-    const value = rawValue === "" ? 0 : Number(rawValue);
+  const updatePendingWeight = (product: Product, rawValue: string) => {
+    if (rawValue === "") {
+      setPendingWeights((current) => ({
+        ...current,
+        [product.id]: ""
+      }));
+      setMessage(null);
+      return;
+    }
+
+    const value = Number(rawValue);
 
     if (!Number.isFinite(value)) {
       return;
     }
 
-    const normalizedValue = Math.max(0, Math.min(10, Math.floor(value)));
+    const minimumWeight = product.minWeight ?? 1;
+    const normalizedValue = Math.max(minimumWeight, Math.floor(value));
 
-    setWeights((current) => ({
+    setPendingWeights((current) => ({
       ...current,
-      [product.id]: normalizedValue
+      [product.id]: String(normalizedValue)
     }));
     setMessage(null);
   };
 
-  const removeProduct = (productId: string) => {
-    setWeights((current) => ({
+  const addOrderLine = (product: Product) => {
+    const weight = Number(pendingWeights[product.id]);
+    const minimumWeight = product.minWeight ?? 1;
+
+    if (!Number.isInteger(weight) || weight < minimumWeight) {
+      setMessage({
+        type: "error",
+        text: `${product.name} has a minimum purchase of ${minimumWeight}kg.`
+      });
+      return;
+    }
+
+    setCartItems((current) => [
       ...current,
-      [productId]: 0
+      {
+        lineId: `${product.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        productId: product.id,
+        weight
+      }
+    ]);
+    setPendingWeights((current) => ({
+      ...current,
+      [product.id]: ""
     }));
+    setMessage(null);
+  };
+
+  const removeProduct = (lineId: string) => {
+    setCartItems((current) => current.filter((product) => product.lineId !== lineId));
     setMessage(null);
   };
 
@@ -143,7 +192,7 @@ export default function Home() {
     }
 
     if (selectedProducts.length === 0) {
-      setMessage({ type: "error", text: "Please select at least one product weight." });
+      setMessage({ type: "error", text: "Please add at least one order to the summary." });
       return;
     }
 
@@ -174,9 +223,9 @@ export default function Home() {
         },
         body: JSON.stringify({
           customer: form,
-          products: Object.entries(weights).map(([productId, weight]) => ({
-            productId,
-            weight
+          products: cartItems.map((item) => ({
+            productId: item.productId,
+            weight: item.weight
           }))
         })
       });
@@ -194,7 +243,8 @@ export default function Home() {
         text: `Thank you. Your order has been submitted successfully.`
       });
       setForm(initialForm);
-      setWeights(Object.fromEntries(products.map((product) => [product.id, 0])));
+      setPendingWeights(Object.fromEntries(products.map((product) => [product.id, ""])));
+      setCartItems([]);
     } catch (error) {
       setMessage({
         type: "error",
@@ -252,8 +302,7 @@ export default function Home() {
               <strong>info@siam-connection.com</strong>.
             </p>
             <p className="screenshot-note">
-              Reminder: please screenshot these payment instructions so you can send your payment
-              slip after leaving this page.
+              REMINDER: PLEASE SCREENSHOT THIS PAGE FOR YOUR REFERENCE
             </p>
           </section>
 
@@ -290,6 +339,7 @@ export default function Home() {
             <ul className="terms-list">
               <li>All cuts are prepared by the chef team and are subject to event-day availability.</li>
               <li>A 50% non-refundable deposit is required to secure each pre-order.</li>
+              <li>The remaining 50% balance must be paid upon collection.</li>
               <li>Orders are fulfilled on a first-come, first-served basis after payment verification.</li>
               <li>Collection is scheduled for 25 July 2026 from 12:00pm at KLCC Hall 6.</li>
               <li>Late collection, missed collection, or customer cancellation may result in forfeiture of the deposit.</li>
@@ -360,16 +410,22 @@ export default function Home() {
                         <div className="kg-input-wrap">
                           <input
                             inputMode="numeric"
-                            min={0}
-                            max={10}
+                            min={product.minWeight ?? 1}
                             type="number"
-                            value={weights[product.id] || ""}
-                            onChange={(event) => updateWeight(product, event.target.value)}
-                            placeholder="0"
+                            value={pendingWeights[product.id] ?? ""}
+                            onChange={(event) => updatePendingWeight(product, event.target.value)}
+                            placeholder={String(product.minWeight ?? 1)}
                           />
                           <span>kg</span>
                         </div>
                       </label>
+                      <button
+                        className="add-order-button"
+                        type="button"
+                        onClick={() => addOrderLine(product)}
+                      >
+                        Add Order
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -412,7 +468,7 @@ export default function Home() {
           ) : (
             <div className="summary-items">
               {selectedProducts.map((product) => (
-                <div className="summary-item" key={product.id}>
+                <div className="summary-item" key={product.lineId}>
                   <div>
                     <strong>{product.name}</strong>
                     <span>
@@ -421,7 +477,7 @@ export default function Home() {
                   </div>
                   <div className="summary-actions">
                     <b>{formatCurrency(product.subtotal)}</b>
-                    <button type="button" onClick={() => removeProduct(product.id)}>
+                    <button type="button" onClick={() => removeProduct(product.lineId)}>
                       Remove
                     </button>
                   </div>

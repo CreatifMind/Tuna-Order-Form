@@ -315,7 +315,7 @@ textarea:focus {
 
 .product-controls {
   display: grid;
-  grid-template-columns: 1fr 112px;
+  grid-template-columns: 1fr 118px;
   gap: 14px;
   align-items: end;
 }
@@ -345,6 +345,25 @@ textarea:focus {
   font-size: 0.9rem;
   font-weight: 750;
   transform: translateY(-50%);
+}
+
+.add-order-button {
+  grid-column: 1 / -1;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--plum);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 850;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.add-order-button:hover {
+  background: var(--sakura-dark);
+  transform: translateY(-1px);
 }
 
 .payment-section {
@@ -598,9 +617,16 @@ textarea:focus {
 
 .screenshot-note {
   margin: 18px 0 0;
-  color: var(--muted);
-  font-weight: 700;
+  padding: 16px;
+  border: 2px solid var(--sakura-dark);
+  border-radius: 8px;
+  background: #fff0a8;
+  color: #6f1732;
+  font-size: clamp(1.02rem, 2vw, 1.28rem);
+  font-weight: 950;
+  letter-spacing: 0.04em;
   line-height: 1.55;
+  text-align: center;
 }
 
 .secondary-action {

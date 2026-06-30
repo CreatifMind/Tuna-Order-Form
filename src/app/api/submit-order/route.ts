@@ -27,6 +27,11 @@ const productCatalog: ProductConfig[] = [
   { id: "premium-cut-akami", name: "Premium Cut Akami", pricePerKg: 900 }
 ];
 
+type SelectedProduct = ProductConfig & {
+  weight: number;
+  subtotal: number;
+};
+
 const catalogById = new Map(productCatalog.map((product) => [product.id, product]));
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -136,30 +141,23 @@ export async function POST(request: NextRequest) {
     return jsonError("Product selections are required.");
   }
 
-  const weightsByProductId = new Map<string, number>();
+  const selectedProducts: SelectedProduct[] = [];
 
   for (const item of payload.products) {
     const productId = asTrimmedString(item.productId);
     const weight = Number(item.weight);
+    const product = catalogById.get(productId);
 
-    if (!catalogById.has(productId) || !Number.isInteger(weight) || weight < 0 || weight > 10) {
+    if (!product || !Number.isInteger(weight) || weight <= 0) {
       return jsonError("One or more product selections are invalid.");
     }
 
-    weightsByProductId.set(productId, weight);
+    selectedProducts.push({
+      ...product,
+      weight,
+      subtotal: weight * product.pricePerKg
+    });
   }
-
-  const selectedProducts = productCatalog
-    .map((product) => {
-      const weight = weightsByProductId.get(product.id) ?? 0;
-
-      return {
-        ...product,
-        weight,
-        subtotal: weight * product.pricePerKg
-      };
-    })
-    .filter((product) => product.weight > 0);
 
   if (selectedProducts.length === 0) {
     return jsonError("Please select at least one product.");
