@@ -398,15 +398,15 @@ export default function Home() {
             <div className="bank-details">
               <p>
                 <span>Bank Name</span>
-                <strong>[Insert Bank Name]</strong>
+                <strong>Public Bank Bhd</strong>
               </p>
               <p>
                 <span>Account Name</span>
-                <strong>[Insert Account Name]</strong>
+                <strong>ORIBE CREATIVE DINING SDN BHD</strong>
               </p>
               <p>
                 <span>Account Number</span>
-                <strong>[Insert Account Number]</strong>
+                <strong>3197775908</strong>
               </p>
             </div>
             <p className="payment-note">
@@ -616,15 +616,15 @@ export default function Home() {
             <div className="bank-details">
               <p>
                 <span>Bank Name</span>
-                <strong>[Insert Bank Name]</strong>
+                <strong>Public Bank Bhd</strong>
               </p>
               <p>
                 <span>Account Name</span>
-                <strong>[Insert Account Name]</strong>
+                <strong>ORIBE CREATIVE DINING SDN BHD</strong>
               </p>
               <p>
                 <span>Account Number</span>
-                <strong>[Insert Account Number]</strong>
+                <strong>3197775908</strong>
               </p>
             </div>
             <p className="payment-note">
