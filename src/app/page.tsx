@@ -436,12 +436,11 @@ export default function Home() {
       <section className="hero-section">
         <div className="hero-copy">
           <img
-            className="event-logo"
-            src="/images/jemy-2026-logo.png"
-            alt="Japan Expo Malaysia 2026"
+            className="event-logo tuna-hero-logo"
+            src="/images/tuna-logo.png"
+            alt="Japan Expo tuna mascot"
           />
           <h1>Tuna Pre-Order Form</h1>
-          <img className="tuna-logo" src="/images/tuna-logo.png" alt="Japan Expo tuna mascot" />
         </div>
       </section>
 

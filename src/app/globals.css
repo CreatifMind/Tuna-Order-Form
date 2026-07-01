@@ -66,16 +66,21 @@ textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 340px;
-  padding: clamp(28px, 5vw, 56px);
+  min-height: 0;
+  padding: clamp(18px, 3vw, 34px);
   text-align: center;
 }
 
 .event-logo {
-  width: min(260px, 72vw);
+  width: min(220px, 58vw);
   height: auto;
-  margin-bottom: 22px;
+  margin-bottom: 12px;
   object-fit: contain;
+}
+
+.tuna-hero-logo {
+  width: min(240px, 62vw);
+  max-height: 220px;
 }
 
 .section-label {
@@ -96,17 +101,11 @@ p {
 
 h1 {
   max-width: 100%;
-  margin-bottom: 18px;
+  margin-bottom: 0;
   font-size: clamp(2rem, 5vw, 3.6rem);
   line-height: 1;
   letter-spacing: 0;
   white-space: nowrap;
-}
-
-.tuna-logo {
-  width: min(280px, 70vw);
-  height: auto;
-  object-fit: contain;
 }
 
 h2 {
