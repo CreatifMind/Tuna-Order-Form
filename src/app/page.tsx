@@ -323,12 +323,7 @@ export default function Home() {
             src="/images/jemy-2026-logo.png"
             alt="Japan Expo Malaysia 2026"
           />
-          <p className="section-label">Japan Expo Malaysia 2026 Premium Collection</p>
           <h1>Tuna Pre-Order Form</h1>
-          <p>
-            Reserve premium tuna cuts in advance for event collection. Choose your preferred
-            products, review the live deposit amount, and submit your order securely.
-          </p>
         </div>
       </section>
 
