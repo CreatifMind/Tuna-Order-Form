@@ -332,13 +332,52 @@ export default function Home() {
           <section className="content-section">
             <h2>Terms and Conditions</h2>
             <ul className="terms-list">
-              <li>All cuts are prepared by the chef team and are subject to event-day availability.</li>
-              <li>A 50% non-refundable deposit is required to secure each pre-order.</li>
-              <li>The remaining 50% balance must be paid upon collection.</li>
-              <li>Orders are fulfilled on a first-come, first-served basis after payment verification.</li>
-              <li>Collection is scheduled for 25 July 2026 from 12:00pm at KLCC Hall 6.</li>
-              <li>Late collection, missed collection, or customer cancellation may result in forfeiture of the deposit.</li>
-              <li>Please keep your payment slip and send it via WhatsApp or email after submitting this form.</li>
+              <li>Customers are not permitted to select specific parts or cuts of the tuna.</li>
+              <li>
+                All portions will be selected by our chef to ensure the best quality, freshness, and
+                fair distribution among all customers.
+              </li>
+              <li>
+                A 50% non-refundable deposit of the total order value is required to confirm your
+                pre-order. The remaining amount will have to be paid upon collection.
+              </li>
+              <li>Orders will only be processed upon receipt of the deposit.</li>
+              <li>All pre-orders are accepted on a first come, first served basis.</li>
+              <li>
+                Confirmation of your order is subject to successful deposit payment and product
+                availability.
+              </li>
+              <li>Tuna is available while stocks last.</li>
+              <li>Due to the perishable nature of fresh seafood, all sales are final.</li>
+              <li>
+                Once the tuna has been collected or delivered, it cannot be returned, exchanged, or
+                refunded.
+              </li>
+              <li>
+                If we are unable to fulfill your confirmed order due to insufficient stock or
+                unforeseen supply issues, any deposit or payment made will be refunded in full using
+                the original payment method.
+              </li>
+              <li>
+                Customers are responsible for collecting their orders on the agreed collection date
+                and time at Japan Expo Malaysia 2026, Hall 6, Kuala Lumpur Convention Centre.
+              </li>
+              <li>
+                We are not responsible for any deterioration in product quality resulting from late
+                collection.
+              </li>
+              <li>
+                Any request to amend or cancel a confirmed pre-order must be made at least 48 hours
+                before the scheduled collection date.
+              </li>
+              <li>
+                Deposits may be forfeited for late cancellations or no-shows, except where the order
+                cannot be fulfilled by us.
+              </li>
+              <li>
+                By placing a pre-order and making the required deposit, the customer acknowledges
+                that they have read, understood, and agreed to these Terms & Conditions.
+              </li>
             </ul>
           </section>
 
