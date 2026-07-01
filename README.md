@@ -72,7 +72,8 @@ The API appends each successful order as a new row. The `Selected Products` cell
 
 ```text
 Tuna Block Sale - 2kg - RM660
-Premium Cut Akami - 1kg - RM900
+Akami - 1kg - RM1,000
+Maguro Don + Uni + Ikura - 1 order - RM250
 ```
 
 ## Free Google Apps Script Setup

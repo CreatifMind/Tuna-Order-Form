@@ -285,6 +285,7 @@ textarea:focus {
 
 .product-image {
   overflow: hidden;
+  position: relative;
   min-height: 156px;
   background:
     radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.65) 0 8%, transparent 9%),
@@ -292,12 +293,40 @@ textarea:focus {
     #ffe2e7;
 }
 
-.product-image img {
+.product-image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: #ffe2e7;
+}
+
+.image-frame {
+  overflow: hidden;
+  position: relative;
+  min-height: 180px;
+}
+
+.product-image img,
+.product-image-grid img {
   display: block;
   width: 100%;
   height: 180px;
   object-fit: cover;
   object-position: center;
+}
+
+.image-frame span {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: rgba(42, 32, 36, 0.78);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
 }
 
 .product-content {
@@ -327,6 +356,10 @@ textarea:focus {
 
 .product-controls label span {
   font-size: 0.78rem;
+}
+
+.option-control {
+  grid-column: 1 / -1;
 }
 
 .kg-input-wrap {

@@ -11,26 +11,58 @@ type CustomerPayload = {
 type ProductPayload = {
   productId?: unknown;
   weight?: unknown;
+  optionId?: unknown;
 };
 
-type ProductConfig = {
+type WeightProductConfig = {
+  kind: "weight";
   id: string;
   name: string;
   pricePerKg: number;
+  minWeight: number;
+};
+
+type DonOptionConfig = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+type VariantProductConfig = {
+  kind: "variant";
+  id: string;
+  name: string;
+  options: DonOptionConfig[];
+};
+
+type ProductConfig = WeightProductConfig | VariantProductConfig;
+
+type SelectedProduct = {
+  name: string;
+  detail: string;
+  subtotal: number;
   minWeight?: number;
+  weight?: number;
 };
 
 const productCatalog: ProductConfig[] = [
-  { id: "tuna-block-sale", name: "Tuna Block Sale", pricePerKg: 330, minWeight: 5 },
-  { id: "premium-cut-otoro", name: "Premium Cut Otoro", pricePerKg: 1500 },
-  { id: "premium-cut-chutoro", name: "Premium Cut Chutoro", pricePerKg: 1300 },
-  { id: "premium-cut-akami", name: "Premium Cut Akami", pricePerKg: 900 }
+  { kind: "weight", id: "tuna-block-sale", name: "Tuna Block Sale", pricePerKg: 330, minWeight: 1 },
+  { kind: "weight", id: "akami", name: "Akami", pricePerKg: 1000, minWeight: 1 },
+  { kind: "weight", id: "chutoro", name: "Chutoro", pricePerKg: 1000, minWeight: 1 },
+  { kind: "weight", id: "otoro", name: "Otoro", pricePerKg: 1500, minWeight: 1 },
+  {
+    kind: "variant",
+    id: "maguro-don",
+    name: "Maguro Don",
+    options: [
+      { id: "maguro-don", name: "Maguro Don", price: 150 },
+      { id: "premium-maguro-don", name: "Premium Maguro Don", price: 170 },
+      { id: "maguro-don-uni", name: "Maguro Don + Uni", price: 200 },
+      { id: "maguro-don-ikura", name: "Maguro Don + Ikura", price: 200 },
+      { id: "maguro-don-uni-ikura", name: "Maguro Don + Uni + Ikura", price: 250 }
+    ]
+  }
 ];
-
-type SelectedProduct = ProductConfig & {
-  weight: number;
-  subtotal: number;
-};
 
 const catalogById = new Map(productCatalog.map((product) => [product.id, product]));
 
@@ -175,17 +207,40 @@ export async function POST(request: NextRequest) {
 
   for (const item of payload.products) {
     const productId = asTrimmedString(item.productId);
-    const weight = Number(item.weight);
     const product = catalogById.get(productId);
 
-    if (!product || !Number.isInteger(weight) || weight <= 0) {
+    if (!product) {
+      return jsonError("One or more product selections are invalid.");
+    }
+
+    if (product.kind === "variant") {
+      const optionId = asTrimmedString(item.optionId);
+      const option = product.options.find((optionItem) => optionItem.id === optionId);
+
+      if (!option) {
+        return jsonError("One or more product selections are invalid.");
+      }
+
+      selectedProducts.push({
+        name: option.name,
+        detail: "1 order",
+        subtotal: option.price
+      });
+      continue;
+    }
+
+    const weight = Number(item.weight);
+
+    if (!Number.isInteger(weight) || weight < product.minWeight) {
       return jsonError("One or more product selections are invalid.");
     }
 
     selectedProducts.push({
-      ...product,
-      weight,
-      subtotal: weight * product.pricePerKg
+      name: product.name,
+      detail: `${weight}kg`,
+      subtotal: weight * product.pricePerKg,
+      minWeight: product.minWeight,
+      weight
     });
   }
 
@@ -194,7 +249,10 @@ export async function POST(request: NextRequest) {
   }
 
   const invalidMinimumProduct = selectedProducts.find(
-    (product) => product.minWeight && product.weight < product.minWeight
+    (product) =>
+      product.minWeight &&
+      typeof product.weight === "number" &&
+      product.weight < product.minWeight
   );
 
   if (invalidMinimumProduct) {
@@ -207,10 +265,7 @@ export async function POST(request: NextRequest) {
   const depositAmount = totalAmount * 0.5;
   const timestamp = new Date().toISOString();
   const selectedProductsSummary = selectedProducts
-    .map(
-      (product) =>
-        `${product.name} - ${product.weight}kg - ${formatCurrency(product.subtotal)}`
-    )
+    .map((product) => `${product.name} - ${product.detail} - ${formatCurrency(product.subtotal)}`)
     .join("\n");
 
   try {

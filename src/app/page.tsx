@@ -2,14 +2,33 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
-type Product = {
+type WeightProduct = {
+  kind: "weight";
   id: string;
   name: string;
   description: string;
   pricePerKg: number;
   imageSrc: string;
-  minWeight?: number;
+  minWeight: number;
 };
+
+type DonOption = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+type VariantProduct = {
+  kind: "variant";
+  id: string;
+  name: string;
+  description: string;
+  imageSrc: string;
+  secondaryImageSrc: string;
+  options: DonOption[];
+};
+
+type Product = WeightProduct | VariantProduct;
 
 type FormState = {
   fullName: string;
@@ -22,38 +41,70 @@ type FormState = {
 type CartItem = {
   lineId: string;
   productId: string;
-  weight: number;
+  weight?: number;
+  optionId?: string;
+};
+
+type SummaryItem = {
+  lineId: string;
+  name: string;
+  detail: string;
+  subtotal: number;
+  minWeight?: number;
+  weight?: number;
 };
 
 const products: Product[] = [
   {
+    kind: "weight",
     id: "tuna-block-sale",
     name: "Tuna Block Sale",
-    description: "Versatile premium tuna block for sashimi, searing, or home slicing. Minimum 5kg.",
+    description: "Versatile premium tuna block for sashimi, searing, or home slicing.",
     pricePerKg: 330,
     imageSrc: "/images/tuna-block.jpeg",
-    minWeight: 5
+    minWeight: 1
   },
   {
-    id: "premium-cut-otoro",
-    name: "Premium Cut Otoro",
+    kind: "weight",
+    id: "akami",
+    name: "Akami",
+    description: "Lean, clean-tasting red meat cut with elegant umami notes.",
+    pricePerKg: 1000,
+    imageSrc: "/images/akami.jpg",
+    minWeight: 1
+  },
+  {
+    kind: "weight",
+    id: "chutoro",
+    name: "Chutoro",
+    description: "Balanced medium-fat cut with deep flavor and silky texture.",
+    pricePerKg: 1000,
+    imageSrc: "/images/chutoro.jpg",
+    minWeight: 1
+  },
+  {
+    kind: "weight",
+    id: "otoro",
+    name: "Otoro",
     description: "Luxurious fatty belly cut with rich marbling and a buttery finish.",
     pricePerKg: 1500,
-    imageSrc: "/images/otoro.jpg"
+    imageSrc: "/images/otoro.jpg",
+    minWeight: 1
   },
   {
-    id: "premium-cut-chutoro",
-    name: "Premium Cut Chutoro",
-    description: "Balanced medium-fat cut with deep flavor and silky texture.",
-    pricePerKg: 1300,
-    imageSrc: "/images/chutoro.jpg"
-  },
-  {
-    id: "premium-cut-akami",
-    name: "Premium Cut Akami",
-    description: "Lean, clean-tasting red meat cut with elegant umami notes.",
-    pricePerKg: 900,
-    imageSrc: "/images/tuna-block.jpeg"
+    kind: "variant",
+    id: "maguro-don",
+    name: "Maguro Don",
+    description: "Choose your preferred donburi option from the menu below.",
+    imageSrc: "/images/maguro-don.jpg",
+    secondaryImageSrc: "/images/maguro-don-premium.jpg",
+    options: [
+      { id: "maguro-don", name: "Maguro Don", price: 150 },
+      { id: "premium-maguro-don", name: "Premium Maguro Don", price: 170 },
+      { id: "maguro-don-uni", name: "Maguro Don + Uni", price: 200 },
+      { id: "maguro-don-ikura", name: "Maguro Don + Ikura", price: 200 },
+      { id: "maguro-don-uni-ikura", name: "Maguro Don + Uni + Ikura", price: 250 }
+    ]
   }
 ];
 
@@ -72,10 +123,22 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0
   }).format(value);
 
+const isSummaryItem = (product: SummaryItem | null): product is SummaryItem =>
+  product !== null;
+
 export default function Home() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [pendingWeights, setPendingWeights] = useState<Record<string, string>>(
-    Object.fromEntries(products.map((product) => [product.id, ""]))
+    Object.fromEntries(
+      products.filter((product) => product.kind === "weight").map((product) => [product.id, ""])
+    )
+  );
+  const [pendingOptions, setPendingOptions] = useState<Record<string, string>>(
+    Object.fromEntries(
+      products
+        .filter((product) => product.kind === "variant")
+        .map((product) => [product.id, product.options[0]?.id ?? ""])
+    )
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,30 +151,47 @@ export default function Home() {
   const selectedProducts = useMemo(
     () =>
       cartItems
-        .map((item) => {
+        .map((item): SummaryItem | null => {
           const product = products.find((productOption) => productOption.id === item.productId);
 
           if (!product) {
             return null;
           }
 
+          if (product.kind === "variant") {
+            const option = product.options.find((optionItem) => optionItem.id === item.optionId);
+
+            if (!option) {
+              return null;
+            }
+
+            return {
+              lineId: item.lineId,
+              name: option.name,
+              detail: "1 order",
+              subtotal: option.price
+            };
+          }
+
+          const weight = item.weight ?? 0;
+
           return {
-            ...product,
             lineId: item.lineId,
-            weight: item.weight,
-            subtotal: item.weight * product.pricePerKg
+            name: product.name,
+            detail: `${weight}kg x ${formatCurrency(product.pricePerKg)} / kg`,
+            subtotal: weight * product.pricePerKg,
+            minWeight: product.minWeight,
+            weight
           };
         })
-        .filter((product): product is Product & { lineId: string; weight: number; subtotal: number } =>
-          Boolean(product)
-        ),
+        .filter(isSummaryItem),
     [cartItems]
   );
 
   const totalAmount = selectedProducts.reduce((sum, product) => sum + product.subtotal, 0);
   const depositAmount = totalAmount * 0.5;
 
-  const updatePendingWeight = (product: Product, rawValue: string) => {
+  const updatePendingWeight = (product: WeightProduct, rawValue: string) => {
     if (rawValue === "") {
       setPendingWeights((current) => ({
         ...current,
@@ -127,7 +207,7 @@ export default function Home() {
       return;
     }
 
-    const minimumWeight = product.minWeight ?? 1;
+    const minimumWeight = product.minWeight;
     const normalizedValue = Math.max(minimumWeight, Math.floor(value));
 
     setPendingWeights((current) => ({
@@ -137,9 +217,38 @@ export default function Home() {
     setMessage(null);
   };
 
+  const updatePendingOption = (productId: string, optionId: string) => {
+    setPendingOptions((current) => ({
+      ...current,
+      [productId]: optionId
+    }));
+    setMessage(null);
+  };
+
   const addOrderLine = (product: Product) => {
+    if (product.kind === "variant") {
+      const optionId = pendingOptions[product.id];
+      const option = product.options.find((optionItem) => optionItem.id === optionId);
+
+      if (!option) {
+        setMessage({ type: "error", text: `Please select a ${product.name} option.` });
+        return;
+      }
+
+      setCartItems((current) => [
+        ...current,
+        {
+          lineId: `${option.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          productId: product.id,
+          optionId: option.id
+        }
+      ]);
+      setMessage(null);
+      return;
+    }
+
     const weight = Number(pendingWeights[product.id]);
-    const minimumWeight = product.minWeight ?? 1;
+    const minimumWeight = product.minWeight;
 
     if (!Number.isInteger(weight) || weight < minimumWeight) {
       setMessage({
@@ -197,7 +306,10 @@ export default function Home() {
     }
 
     const invalidMinimumProduct = selectedProducts.find(
-      (product) => product.minWeight && product.weight < product.minWeight
+      (product) =>
+        product.minWeight &&
+        typeof product.weight === "number" &&
+        product.weight < product.minWeight
     );
 
     if (invalidMinimumProduct) {
@@ -225,7 +337,8 @@ export default function Home() {
           customer: form,
           products: cartItems.map((item) => ({
             productId: item.productId,
-            weight: item.weight
+            weight: item.weight,
+            optionId: item.optionId
           }))
         })
       });
@@ -243,7 +356,11 @@ export default function Home() {
         text: `Thank you. Your order has been submitted successfully.`
       });
       setForm(initialForm);
-      setPendingWeights(Object.fromEntries(products.map((product) => [product.id, ""])));
+      setPendingWeights(
+        Object.fromEntries(
+          products.filter((product) => product.kind === "weight").map((product) => [product.id, ""])
+        )
+      );
       setCartItems([]);
     } catch (error) {
       setMessage({
@@ -429,8 +546,17 @@ export default function Home() {
             <div className="product-grid">
               {products.map((product) => (
                 <article className="product-card" key={product.id}>
-                  <div className="product-image">
-                    <img src={product.imageSrc} alt={product.name} />
+                  <div className={product.kind === "variant" ? "product-image-grid" : "product-image"}>
+                    <div className="image-frame">
+                      <img src={product.imageSrc} alt={product.name} />
+                      <span>For illustration purposes only</span>
+                    </div>
+                    {product.kind === "variant" && (
+                      <div className="image-frame">
+                        <img src={product.secondaryImageSrc} alt={`${product.name} premium option`} />
+                        <span>For illustration purposes only</span>
+                      </div>
+                    )}
                   </div>
                   <div className="product-content">
                     <div>
@@ -438,21 +564,39 @@ export default function Home() {
                       <p>{product.description}</p>
                     </div>
                     <div className="product-controls">
-                      <strong>{formatCurrency(product.pricePerKg)} / kg</strong>
-                      <label>
-                        <span>Weight</span>
-                        <div className="kg-input-wrap">
-                          <input
-                            inputMode="numeric"
-                            min={product.minWeight ?? 1}
-                            type="number"
-                            value={pendingWeights[product.id] ?? ""}
-                            onChange={(event) => updatePendingWeight(product, event.target.value)}
-                            placeholder={String(product.minWeight ?? 1)}
-                          />
-                          <span>kg</span>
-                        </div>
-                      </label>
+                      {product.kind === "weight" ? (
+                        <>
+                          <strong>{formatCurrency(product.pricePerKg)} / kg</strong>
+                          <label>
+                            <span>Weight</span>
+                            <div className="kg-input-wrap">
+                              <input
+                                inputMode="numeric"
+                                min={product.minWeight}
+                                type="number"
+                                value={pendingWeights[product.id] ?? ""}
+                                onChange={(event) => updatePendingWeight(product, event.target.value)}
+                                placeholder={String(product.minWeight)}
+                              />
+                              <span>kg</span>
+                            </div>
+                          </label>
+                        </>
+                      ) : (
+                        <label className="option-control">
+                          <span>Option</span>
+                          <select
+                            value={pendingOptions[product.id] ?? product.options[0]?.id}
+                            onChange={(event) => updatePendingOption(product.id, event.target.value)}
+                          >
+                            {product.options.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.name} - {formatCurrency(option.price)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
                       <button
                         className="add-order-button"
                         type="button"
@@ -505,9 +649,7 @@ export default function Home() {
                 <div className="summary-item" key={product.lineId}>
                   <div>
                     <strong>{product.name}</strong>
-                    <span>
-                      {product.weight}kg x {formatCurrency(product.pricePerKg)} / kg
-                    </span>
+                    <span>{product.detail}</span>
                   </div>
                   <div className="summary-actions">
                     <b>{formatCurrency(product.subtotal)}</b>
