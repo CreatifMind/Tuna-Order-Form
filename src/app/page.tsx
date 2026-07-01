@@ -416,7 +416,7 @@ export default function Home() {
             <p className="payment-note">
               Once payment is made, please WhatsApp payment slip to{" "}
               <strong>012-2099005</strong> or email to{" "}
-              <strong>info@siam-connection.com</strong>.
+              <strong>info@siam-connection.com</strong> along with your full name.
             </p>
             <p className="screenshot-note">
               REMINDER: PLEASE SCREENSHOT THIS PAGE FOR YOUR REFERENCE
@@ -623,7 +623,7 @@ export default function Home() {
             <p className="payment-note">
               Once payment is made, please WhatsApp payment slip to{" "}
               <strong>012-2099005</strong> or email to{" "}
-              <strong>info@siam-connection.com</strong>.
+              <strong>info@siam-connection.com</strong> along with your full name.
             </p>
           </section>
         </div>
