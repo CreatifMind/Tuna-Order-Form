@@ -95,11 +95,18 @@ p {
 }
 
 h1 {
-  max-width: 720px;
+  max-width: 100%;
   margin-bottom: 18px;
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  line-height: 0.95;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1;
   letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.tuna-logo {
+  width: min(280px, 70vw);
+  height: auto;
+  object-fit: contain;
 }
 
 h2 {
@@ -296,6 +303,7 @@ textarea:focus {
 .product-image-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  position: relative;
   background: #ffe2e7;
 }
 
@@ -314,7 +322,7 @@ textarea:focus {
   object-position: center;
 }
 
-.image-frame span {
+.image-disclaimer {
   position: absolute;
   right: 8px;
   bottom: 8px;

@@ -441,6 +441,7 @@ export default function Home() {
             alt="Japan Expo Malaysia 2026"
           />
           <h1>Tuna Pre-Order Form</h1>
+          <img className="tuna-logo" src="/images/tuna-logo.png" alt="Japan Expo tuna mascot" />
         </div>
       </section>
 
@@ -465,10 +466,8 @@ export default function Home() {
                 availability.
               </li>
               <li>Tuna is available while stocks last.</li>
-              <li>Due to the perishable nature of fresh seafood, all sales are final.</li>
               <li>
-                Once the tuna has been collected or delivered, it cannot be returned, exchanged, or
-                refunded.
+                Once the tuna has been collected, it cannot be returned, exchanged, or refunded.
               </li>
               <li>
                 If we are unable to fulfill your confirmed order due to insufficient stock or
@@ -476,16 +475,8 @@ export default function Home() {
                 the original payment method.
               </li>
               <li>
-                Customers are responsible for collecting their orders on the agreed collection date
-                and time at Japan Expo Malaysia 2026, Hall 6, Kuala Lumpur Convention Centre.
-              </li>
-              <li>
-                We are not responsible for any deterioration in product quality resulting from late
-                collection.
-              </li>
-              <li>
-                Any request to amend or cancel a confirmed pre-order must be made at least 48 hours
-                before the scheduled collection date.
+                Customers are responsible for collecting their orders at Japan Expo Malaysia 2026,
+                Hall 6, KLCC, 25th July, between 1pm to 7pm.
               </li>
               <li>
                 Deposits may be forfeited for late cancellations or no-shows, except where the order
@@ -549,14 +540,13 @@ export default function Home() {
                   <div className={product.kind === "variant" ? "product-image-grid" : "product-image"}>
                     <div className="image-frame">
                       <img src={product.imageSrc} alt={product.name} />
-                      <span>For illustration purposes only</span>
                     </div>
                     {product.kind === "variant" && (
                       <div className="image-frame">
                         <img src={product.secondaryImageSrc} alt={`${product.name} premium option`} />
-                        <span>For illustration purposes only</span>
                       </div>
                     )}
+                    <span className="image-disclaimer">For illustration purposes only</span>
                   </div>
                   <div className="product-content">
                     <div>
